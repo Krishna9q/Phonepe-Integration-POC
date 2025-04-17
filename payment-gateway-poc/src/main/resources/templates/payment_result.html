@@ -1,0 +1,71 @@
+<!DOCTYPE html> 
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Payment Result</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <h1>Payment Result</h1>
+
+    <div id="statusContainer">
+        Checking payment status...
+    </div>
+
+    <a href="/">Go Back to Home</a>
+
+    <script>
+        // Helper to get query parameter from URL
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        // Format result UI
+        function formatPaymentDetails(data) {
+            let html = `
+                <p><strong>Order ID:</strong> ${data.orderId}</p>
+                <p><strong>Status:</strong> ${data.state}</p>
+                <p><strong>Amount:</strong> ₹${data.amount /100}</p>
+                <p><strong>Error Code:</strong> ${data.errorCode || "N/A"}</p>
+                <p><strong>Detailed Error:</strong> ${data.detailedErrorCode || "N/A"}</p>
+            `;
+
+            if (data.paymentDetails && data.paymentDetails.length > 0) {
+                const pd = data.paymentDetails[0];
+                html += `
+                    <h3>Payment Details:</h3>
+                    <p><strong>Payment Mode:</strong> ${pd.paymentMode}</p>
+                    <p><strong>Transaction ID:</strong> ${pd.transactionId}</p>
+                    <p><strong>Payment Status:</strong> ${pd.state}</p>
+                `;
+            }
+
+            return html;
+        }
+
+        function checkPaymentStatus() {
+            const merchentOrderId = getQueryParam("merchentOrderId");
+            if (!merchentOrderId) {
+                document.getElementById("statusContainer").innerText = "Missing transaction ID in URL.";
+                return;
+            }
+
+            fetch(`/check-payment-status?merchentOrderId=${merchentOrderId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.state === 'COMPLETED' || data.state === 'FAILED') {
+                        document.getElementById("statusContainer").innerHTML = formatPaymentDetails(data);
+                    } else {
+                        document.getElementById("statusContainer").innerText = "Payment is still pending. Please check back later.";
+                    }
+                })
+                .catch(error => {
+                    document.getElementById("statusContainer").innerText = "Error checking payment status.";
+                    console.error(error);
+                });
+        }
+
+        window.onload = checkPaymentStatus;
+    </script>
+</body>
+</html>
