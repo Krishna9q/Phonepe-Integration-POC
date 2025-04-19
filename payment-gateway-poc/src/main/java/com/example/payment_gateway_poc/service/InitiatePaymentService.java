@@ -41,7 +41,8 @@ public class InitiatePaymentService {
     @Value("${spring.payments.phonepe.saltIndex}")
     private String saltIndex;
 
-    private String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHBpcmVzT24iOjE3NDQ4OTMwNzkzNDEsIm1lcmNoYW50SWQiOiJURVNULU0yMjhaN0Y1NjVNSFEifQ.tQHm75zndSPehNn7Dd--z7R1LQjYU6OoIbp4AhA1dao";
+    @Value("${spring.payments.phonepe.auth-token}")
+    private String token;
 
     RestTemplate restTemplate = new RestTemplate();
 
@@ -74,10 +75,10 @@ public class InitiatePaymentService {
 
         Map<String, String> merchantUrls = new HashMap<>();
         merchantUrls.put("redirectUrl",
-                "https://51fb-2409-40c4-f-fe5c-e1d2-a389-8745-19ce.ngrok-free.app/payment/result?merchentOrderId="
+                "https://32eb-2409-40c4-f-fe5c-e1d2-a389-8745-19ce.ngrok-free.app/payment/result?merchentOrderId="
                         + payment.getMerchentOrderId());
         merchantUrls.put("callbackUrl",
-                "https://51fb-2409-40c4-f-fe5c-e1d2-a389-8745-19ce.ngrok-free.app/phonepe/callback");
+                "https://32eb-2409-40c4-f-fe5c-e1d2-a389-8745-19ce.ngrok-free.app/phonepe/callback");
         paymentFlow.put("merchantUrls", merchantUrls);
 
         requestBody.put("paymentFlow", paymentFlow);
