@@ -11,16 +11,23 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
+
+import javax.print.DocFlavor.READER;
 
 import com.example.payment_gateway_poc.model.Payment;
+import com.example.payment_gateway_poc.model.Refund;
 import com.example.payment_gateway_poc.model.Payment.PaymentStatus;
 import com.example.payment_gateway_poc.repo.PaymentRepo;
+import com.example.payment_gateway_poc.repo.RefundRepo;
 import com.example.payment_gateway_poc.request.PaymentRequest;
+import com.example.payment_gateway_poc.response.PaymentStatusCheckResponse;
 import com.example.payment_gateway_poc.response.PhonePeStatusResponse;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,10 +37,13 @@ public class InitiatePaymentService {
     @Autowired
     private PaymentRepo paymentRepo;
 
+    @Autowired
+    private RefundRepo refundRepo;
+
     private static final Logger logger = LoggerFactory.getLogger(InitiatePaymentService.class);
 
     @Value("${spring.payments.phonepe.base-url}")
-    private String baseUrl;
+    private String BASE_URL;
 
     @Value("${spring.payments.phonepe.saltKey}")
     private String saltKey;
@@ -53,7 +63,7 @@ public class InitiatePaymentService {
         payment.setAmountInPaise(request.getAmount() * 100);
         payment.setPhoneNumber(request.getMobileNumber());
 
-        String url = baseUrl + "/v2/pay";
+        String url = BASE_URL + "/v2/pay";
         logger.debug("Payment URL: {}", url);
 
         HttpHeaders headers = new HttpHeaders();
@@ -75,10 +85,10 @@ public class InitiatePaymentService {
 
         Map<String, String> merchantUrls = new HashMap<>();
         merchantUrls.put("redirectUrl",
-                "https://32eb-2409-40c4-f-fe5c-e1d2-a389-8745-19ce.ngrok-free.app/payment/result?merchentOrderId="
+                "https://4b39-2409-40c4-270-9477-1f9f-a521-ae3d-933.ngrok-free.app/payment/result?merchentOrderId="
                         + payment.getMerchentOrderId());
         merchantUrls.put("callbackUrl",
-                "https://32eb-2409-40c4-f-fe5c-e1d2-a389-8745-19ce.ngrok-free.app/phonepe/callback");
+                "https://4b39-2409-40c4-270-9477-1f9f-a521-ae3d-933.ngrok-free.app/phonepe/callback");
         paymentFlow.put("merchantUrls", merchantUrls);
 
         requestBody.put("paymentFlow", paymentFlow);
@@ -98,13 +108,7 @@ public class InitiatePaymentService {
         String state = String.valueOf(responseMap.get("state"));
         logger.info("Payment state received: {}", state);
 
-        if ("SUCCESS".equalsIgnoreCase(state)) {
-            payment.setStatus(PaymentStatus.SUCCESS);
-        } else if ("FAILED".equalsIgnoreCase(state)) {
-            payment.setStatus(PaymentStatus.FAILED);
-        } else {
-            payment.setStatus(PaymentStatus.PENDING);
-        }
+        payment.setStatus(PaymentStatus.PENDING);
 
         Payment savedPayment = paymentRepo.save(payment);
 
@@ -112,52 +116,177 @@ public class InitiatePaymentService {
         return savedPayment;
     }
 
-    public String checkPaymentStatus(String merchantOrderId) {
+    public PaymentStatusCheckResponse checkPaymentStatus(String merchantOrderId) throws RuntimeException {
         logger.info("Checking payment status for merchantOrderId: {}", merchantOrderId);
-
+        PaymentStatusCheckResponse paymentStatusCheckResponse = new PaymentStatusCheckResponse();
         Payment payment = paymentRepo.findByMerchentOrderId(merchantOrderId);
         if (payment == null) {
             logger.error("No payment found for merchantOrderId: {}", merchantOrderId);
-            return "No such order";
+            paymentStatusCheckResponse.setStatus("FAILED");
+            paymentStatusCheckResponse.setReason("payment not found");
+            return paymentStatusCheckResponse;
         }
 
-        String url = baseUrl + "/v2/order/" + merchantOrderId + "/status";
+        if (payment.getStatusCheckCounter() >= 20 && payment.getStatus().equals(PaymentStatus.PENDING)) {
+            payment.setStatus(PaymentStatus.FAILED);
+            paymentRepo.save(payment);
+            logger.warn("Max status check attempts reached for merchantOrderId: {}", merchantOrderId);
+            paymentStatusCheckResponse.setStatus("FAILED");
+            paymentStatusCheckResponse.setReason("TIMEOUT");
+            return paymentStatusCheckResponse;
+        }
+
+        // Increment status check counter before processing
+        payment.setStatusCheckCounter(payment.getStatusCheckCounter() + 1);
+
+        String url = BASE_URL + "/v2/order/" + merchantOrderId + "/status";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-
         headers.set("Authorization", "O-Bearer " + token);
-        logger.debug("Request headers for status check: {}", headers);
+
+        logger.debug("Sending request to: {}", url);
+        logger.debug("Request headers: {}", headers);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
-        logger.info("Sending payment status check request...");
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-        String responseBody = response.getBody();
-        logger.info("Response: {}", responseBody);
 
         try {
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+            String responseBody = response.getBody();
+            logger.info("Received response: {}", responseBody);
+
             ObjectMapper objectMapper = new ObjectMapper();
             PhonePeStatusResponse statusResponse = objectMapper.readValue(responseBody, PhonePeStatusResponse.class);
+
             String state = statusResponse.getState();
+            PhonePeStatusResponse.PaymentDetail detail = statusResponse.getPaymentDetails().get(0);
 
             if ("COMPLETED".equalsIgnoreCase(state)) {
-                PhonePeStatusResponse.PaymentDetail detail = statusResponse.getPaymentDetails().get(0);
-                payment.setStatus(PaymentStatus.SUCCESS); // use enum
+                payment.setStatus(PaymentStatus.SUCCESS);
                 payment.setPhonepeTransactionId(detail.getTransactionId());
                 payment.setPaymentMethod(detail.getPaymentMode());
-                payment.setUpdatedAt(LocalDateTime.now().toString());
+                paymentStatusCheckResponse.setStatus(state);
+                paymentStatusCheckResponse.setReason("PAYMENT SUCCESSFULLY");
+                paymentRepo.save(payment);
             } else if ("FAILED".equalsIgnoreCase(state)) {
-                PhonePeStatusResponse.PaymentDetail detail = statusResponse.getPaymentDetails().get(0);
                 payment.setStatus(PaymentStatus.FAILED);
                 payment.setErrorCode(detail.getErrorCode());
-                payment.setErrorMessage(detail.getDetailedErrorCode()); // Change if more info is available
+                payment.setErrorMessage(detail.getDetailedErrorCode());
+                paymentStatusCheckResponse.setStatus(state);
+                paymentStatusCheckResponse.setReason(detail.getDetailedErrorCode());
+                paymentRepo.save(payment);
+            } else {
+                // payment.setStatus(PaymentStatus.PENDING);
                 payment.setUpdatedAt(LocalDateTime.now().toString());
+                paymentRepo.save(payment);
+                paymentStatusCheckResponse.setStatus(state);
+                paymentStatusCheckResponse.setReason("PENDING");
             }
 
-            paymentRepo.save(payment);
         } catch (Exception e) {
-            logger.error("Error while parsing or updating status", e);
+            logger.error("Exception while checking payment status for order {}: {}", merchantOrderId, e.getMessage(),
+                    e);
+            // Save even if parsing fails (counter is updated)
         }
-        return response.getBody();
+        return paymentStatusCheckResponse;
+
+    }
+
+    @SuppressWarnings({ "unused", "unchecked" })
+    public String initiateRefund(String originalMerchantOrderId) {
+        Payment payment = paymentRepo.findByMerchentOrderId(originalMerchantOrderId);
+
+        if (!payment.getIsRefunded()) {
+            if (payment == null) {
+                throw new RuntimeException("Payment Not Found with Merchant Order ID: " + originalMerchantOrderId);
+            }
+
+            String API_URL = "https://api-preprod.phonepe.com/apis/pg-sandbox/payments/v2/refund";
+
+            Refund refund = new Refund();
+            refund.setMerchantRefundId("Refund-" + UUID.randomUUID());
+            refund.setAmountInPaise(payment.getAmountInPaise());
+            refund.setCurrency(payment.getCurrency());
+            refund.setOriginalMerchantOrderId(originalMerchantOrderId);
+            refund.setPaymentId(payment.getPaymentId());
+            refund.setInitiatedBy("ADMIN");
+
+            // Create request payload
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("merchantRefundId", refund.getMerchantRefundId());
+            requestBody.put("originalMerchantOrderId", originalMerchantOrderId);
+            requestBody.put("amount", refund.getAmountInPaise());
+
+            try {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                headers.set("Authorization", "O-Bearer " + token);
+
+                HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+                ResponseEntity<String> response = restTemplate.postForEntity(API_URL, entity, String.class);
+                ObjectMapper objectMapper = new ObjectMapper();
+                Map<String, Object> responseMap = objectMapper.readValue(response.getBody(), Map.class);
+
+                String refundId = String.valueOf(responseMap.get("refundId"));
+                refund.setPhonePeRefundId(refundId);
+                refundRepo.save(refund);
+                String checkStatusResponse =  refundStatusCheck(refund.getMerchantRefundId());
+                
+                refund.setStatus(checkStatusResponse);
+                payment.setIsRefunded(true);
+                refundRepo.save(refund);
+
+                System.out.println("Refund API Response: " + response);
+                
+                
+
+                return checkStatusResponse;
+
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "Error While Initiating Refund: " + e.getMessage();
+            }
+        } else {
+            throw new RuntimeException("Refund Intitated Already");
+        }
+
+    }
+
+    public String refundStatusCheck(String merchantRefundId) {
+        Refund refund = refundRepo.findByMerchantRefundId(merchantRefundId);
+        String API_URL = "https://api-preprod.phonepe.com/apis/pg-sandbox/payments/v2/refund/" + merchantRefundId
+                + "/status";
+
+        if (refund == null) {
+            throw new RuntimeException("NO REFUND FOUND");
+        }
+
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", "O-Bearer " + token); // Make sure 'token' is correct
+
+            HttpEntity<String> entity = new HttpEntity<>(headers); // attach headers here
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                    API_URL,
+                    HttpMethod.GET,
+                    entity,
+                    String.class);
+            // Parse response body
+            ObjectMapper objectMapper = new ObjectMapper();
+            Map<String, Object> responseMap = objectMapper.readValue(response.getBody(), Map.class);
+            // refund.setGatewayResponseJson(response.toString());
+            String state = String.valueOf(responseMap.get("state"));
+            refund.setStatus(state);
+            // refund.setPhonePeRefundId(responseMap.get("refundId").toString());
+            refundRepo.save(refund);
+            return state;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error: " + e.getMessage();
+        }
     }
 }

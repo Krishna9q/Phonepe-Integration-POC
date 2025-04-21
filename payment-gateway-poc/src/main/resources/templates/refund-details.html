@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Refund Details - <span th:text="${payment.paymentId}"></span></title>
+    <link rel="stylesheet" th:href="@{/css/refund-details.css}" />
+  </head>
+  <body>
+    <div class="refund-container">
+      <div class="refund-header">
+        <h2>Refund Details</h2>
+      </div>
+
+      <div class="refund-body">
+        <div class="section-header">Payment Information</div>
+
+        <div class="detail-row">
+          <div class="detail-label">Payment ID</div>
+          <div class="detail-value" th:text="${payment.paymentId}"></div>
+        </div>
+
+        <div class="detail-row">
+          <div class="detail-label">Original Amount</div>
+          <div class="detail-value">
+            ₹<span
+              th:text="${#numbers.formatDecimal(payment.amountInPaise / 100.0, 1, 2)}"
+            ></span>
+          </div>
+        </div>
+
+        <div class="detail-row">
+          <div class="detail-label">Transaction Date</div>
+          <div class="detail-value">
+            <span
+              th:text="${#temporals.format(payment.createdAt, 'dd MMM yyyy hh:mm a')}"
+            ></span>
+            <span
+              class="timestamp"
+              th:text="'(' + ${#temporals.format(payment.createdAt, 'EEE, dd MMM yyyy HH:mm:ss ')} + ')'"
+            ></span>
+          </div>
+        </div>
+
+        <!-- Refund Info section -->
+        <div class="section-header">Refund Information</div>
+
+        <div class="detail-row">
+          <div class="detail-label">Refund ID</div>
+          <div class="detail-value" th:text="${refund.id}"></div>
+        </div>
+
+        <div class="detail-row">
+          <div class="detail-label">Refund Amount</div>
+          <div class="detail-value">
+            ₹<span
+              th:text="${#numbers.formatDecimal(refund.amountInPaise / 100.0, 1, 2)}"
+            ></span>
+          </div>
+        </div>
+
+        <div class="detail-row">
+          <div class="detail-label">Refund Status</div>
+          <div class="detail-value">
+            <span
+              th:classappend="'status-' + ${refund.status}"
+              th:text="${refund.status}"
+            ></span>
+          </div>
+        </div>
+
+        <div class="detail-row">
+          <div class="detail-label">Refund Date</div>
+          <div class="detail-value">
+            <span
+              th:text="${#temporals.format(refund.initiatedAt, 'dd MMM yyyy hh:mm a')}"
+            ></span>
+            <span
+              class="timestamp"
+              th:text="|(${#temporals.format(refund.initiatedAt, 'EEE, dd MMM yyyy HH:mm:ss')})|"
+            ></span>
+          </div>
+        </div>
+
+        <div class="detail-row" th:if="${refund.reason}">
+          <div class="detail-label">Refund Reason</div>
+          <div class="detail-value" th:text="${refund.reason}"></div>
+        </div>
+
+        <div class="detail-row">
+          <div class="detail-label">Processed By</div>
+          <div
+            class="detail-value"
+            th:text="${refund.initiatedBy} ?: 'System'"
+          ></div>
+        </div>
+
+        <a
+          th:href="@{/dashboard}"
+          class="back-button"
+        >
+          Back to Payment Details
+        </a>
+      </div>
+    </div>
+  </body>
+</html>

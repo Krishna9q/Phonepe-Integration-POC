@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.Transient;
 
 @Data
 @Getter
@@ -23,10 +24,10 @@ public class Payment {
         // CANCELLED,
         // REFUNDED
     }
-    
+
     @jakarta.persistence.Id
-    @jakarta.persistence.GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
-    private Long paymentId;
+    @jakarta.persistence.GeneratedValue(strategy = jakarta.persistence.GenerationType.UUID)
+    private String paymentId;
     // Auto-generated internal transaction ID (UUID)
     private String transactionId;
 
@@ -36,7 +37,6 @@ public class Payment {
     // Auto-generated merchantOrderId (e.g., M_ORDER_<UUID>)
     private String merchentOrderId;
 
-    
     private PaymentStatus status;
 
     @jakarta.persistence.Column(columnDefinition = "TEXT")
@@ -58,9 +58,23 @@ public class Payment {
 
     private String errorMessage;
 
+    private Boolean isRefunded;
+
     private String signature;
 
-    private final String createdAt;
+    private LocalDateTime createdAt;
+
+    private Integer statusCheckCounter;
+    @Transient
+    private String formattedDate;
+
+    public String getFormattedDate() {
+        return formattedDate;
+    }
+
+    public void setFormattedDate(String formattedDate) {
+        this.formattedDate = formattedDate;
+    }
 
     private String updatedAt;
 
@@ -68,8 +82,10 @@ public class Payment {
         this.transactionId = UUID.randomUUID().toString();
         this.orderId = "ORDER_" + UUID.randomUUID().toString().substring(0, 8);
         this.status = PaymentStatus.INITIATED;
+        this.isRefunded = false;
+        this.statusCheckCounter = 0 ;
         this.merchentOrderId = "M_ORDER_" + UUID.randomUUID().toString().substring(0, 10);
-        this.createdAt = LocalDateTime.now().toString();
+        this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now().toString();
     }
 }

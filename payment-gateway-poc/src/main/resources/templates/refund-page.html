@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>Refund Payment - <span th:text="${payment.paymentId}"></span></title>
+  <link rel="stylesheet" th:href="@{/css/refund-page.css}" />
+</head>
+<body>
+  <div class="refund-container">
+    <div class="refund-header">
+      <h2>Refund Payment</h2>
+    </div>
+    
+    <div class="refund-body">
+      <div class="detail-row">
+        <div class="detail-label">Payment ID</div>
+        <div class="detail-value" th:text="${payment.paymentId}"></div>
+      </div>
+      
+      <div class="detail-row">
+        <div class="detail-label">Transaction ID</div>
+        <div class="detail-value" th:text="${payment.transactionId} ?: 'N/A'"></div>
+      </div>
+      
+      <div class="detail-row">
+        <div class="detail-label">Amount</div>
+        <div class="detail-value">₹<span th:text="${#numbers.formatDecimal(payment.amountInPaise / 100.0, 1, 2)}"></span></div>
+      </div>
+      
+      <div class="detail-row">
+        <div class="detail-label">Refunded</div>
+        <div class="detail-value">
+          <span th:classappend="'status-' + ${payment.status}"
+                th:text="${payment.isRefunded} ? 'Yes' : 'No'"></span>
+        </div>
+      </div>
+      
+      <div class="detail-row">
+        <div class="detail-label">Customer Phone</div>
+        <div class="detail-value" th:text="${payment.phoneNumber} ?: 'N/A'"></div>
+      </div>
+      
+      <div class="detail-row">
+        <div class="detail-label">Payment Method</div>
+        <div class="detail-value" th:text="${payment.paymentMethod} ?: 'N/A'"></div>
+      </div>
+    
+      <div class="detail-row">
+        <div class="detail-label">Transaction Date</div>
+        <div class="detail-value">
+          <span th:text="${#temporals.format(payment.createdAt, 'dd MMM yyyy hh:mm a')}"></span>
+          <span class="timestamp" th:text="'(' + ${#temporals.format(payment.createdAt, 'EEE, dd MMM yyyy HH:mm:ss ')} + ')'"></span>
+        </div>
+      </div>
+
+      <!-- Refund Details Section (shown only when payment is refunded) -->
+      <div class="refund-details-section" th:if="${payment.isRefunded}">
+        <div class="refund-details-header">Refund Details</div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Refund ID</div>
+          <div class="detail-value" th:text="${payment.refundId} ?: 'N/A'"></div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Refund Amount</div>
+          <div class="detail-value">₹<span th:text="${#numbers.formatDecimal(payment.refundAmountInPaise / 100.0, 1, 2)} ?: 'N/A'"></span></div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Refund Status</div>
+          <div class="detail-value">
+            <span th:classappend="'status-' + ${payment.refundStatus}"
+                  th:text="${payment.refundStatus} ?: 'N/A'"></span>
+          </div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Refund Date</div>
+          <div class="detail-value">
+            <span th:if="${payment.refundedAt}" th:text="${#temporals.format(payment.refundedAt, 'dd MMM yyyy hh:mm a')}"></span>
+            <span th:unless="${payment.refundedAt}">N/A</span>
+            <span class="timestamp" th:if="${payment.refundedAt}" 
+                  th:text="'(' + ${#temporals.format(payment.refundedAt, 'EEE, dd MMM yyyy HH:mm:ss ')} + ')'"></span>
+          </div>
+        </div>
+        
+        <div class="detail-row" th:if="${payment.refundReason}">
+          <div class="detail-label">Refund Reason</div>
+          <div class="detail-value" th:text="${payment.refundReason}"></div>
+        </div>
+      </div>
+      
+      <form th:action="@{/process-refund}" method="post" id="refundForm" th:unless="${payment.isRefunded}">
+        <input type="hidden" name="originalMerchantOrderId" th:value="${payment.merchentOrderId}" />
+        <button type="button" class="btn-refund" onclick="submitRefundForm()">
+          Confirm Refund
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    
+      function submitRefundForm() {
+        const form = document.getElementById('refundForm');
+        const formData = new FormData(form);
+        const params = new URLSearchParams(formData);
+    
+        fetch('/process-refund', {
+          method: 'POST',
+          body: params
+        })
+        .then(response => response.text())
+        .then(result => {
+          if (result.trim() === "COMPLETED") {
+            window.location.href = "/dashboard";
+          } else {
+            alert("Refund status: " + result);
+          }
+        })
+        .catch(error => {
+          console.error("Error processing refund:", error);
+          alert("Error occurred while processing the refund.");
+        });
+      }
+    
+    
+  </script>
+</body>
+</html>
