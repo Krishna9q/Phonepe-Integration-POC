@@ -7,7 +7,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
@@ -51,10 +54,42 @@ public class InitiatePaymentService {
     @Value("${spring.payments.phonepe.saltIndex}")
     private String saltIndex;
 
-    @Value("${spring.payments.phonepe.auth-token}")
     private String token;
 
     RestTemplate restTemplate = new RestTemplate();
+
+    @Scheduled(cron = "*/30 * * * * *")
+    public void fetchPhonePeToken() {
+        String url = "https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("client_id", "TEST-M228Z7F565MHQ_25041");
+        formData.add("client_version", "1");
+        formData.add("client_secret", "Y2Q3ZmNiZmItZTBlNy00MjY3LWE3NmMtOGIwZDAyMjk0MjMw");
+        formData.add("grant_type", "client_credentials");
+
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(formData, headers);
+
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
+            String responseBody = response.getBody();
+            if (responseBody != null) {
+                // Assuming the response is in JSON format
+                com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+
+                String accessToken = objectMapper.readTree(responseBody).path("access_token").asText();
+                token = accessToken;
+                System.out.println("PhonePe Token Set: " + accessToken);
+            } else {
+                System.out.println("Response body is null");
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to fetch token: " + e.getMessage());
+        }
+    }
 
     @SuppressWarnings("unchecked")
     public Payment initiatePayment(PaymentRequest request) throws Exception {
@@ -230,18 +265,15 @@ public class InitiatePaymentService {
                 String refundId = String.valueOf(responseMap.get("refundId"));
                 refund.setPhonePeRefundId(refundId);
                 refundRepo.save(refund);
-                String checkStatusResponse =  refundStatusCheck(refund.getMerchantRefundId());
-                
+                String checkStatusResponse = refundStatusCheck(refund.getMerchantRefundId());
+
                 refund.setStatus(checkStatusResponse);
                 payment.setIsRefunded(true);
                 refundRepo.save(refund);
 
                 System.out.println("Refund API Response: " + response);
-                
-                
 
                 return checkStatusResponse;
-
 
             } catch (Exception e) {
                 e.printStackTrace();

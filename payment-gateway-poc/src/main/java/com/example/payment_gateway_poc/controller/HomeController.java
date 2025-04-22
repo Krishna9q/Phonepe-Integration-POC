@@ -28,10 +28,16 @@ public class HomeController {
     @Autowired
     private PaymentRepo paymentRepo;
 
+
+
     @GetMapping("/")
     public String home() {
+        
+        
         return "home";
     }
+
+
 
     @GetMapping("/dashboard")
     public String viewPayments(Model model) {
