@@ -1,11 +1,14 @@
 package com.example.payment_gateway_poc.model;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -41,16 +44,27 @@ public class Refund {
     private String initiatedBy; // userId/adminId
 
 
-    private LocalDateTime initiatedAt;
+    private String initiatedAt;
 
-    private LocalDateTime updatedAt;
+    private String updatedAt;
 
     private String gatewayResponseJson; // Save entire response (optional for debugging)
 
     // Optional: webhook received flag
     private Boolean webhookReceived = false;
     public Refund() {
-        this.initiatedAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        
+    }
+
+       @PrePersist
+    public void onCreate() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        this.initiatedAt = String.valueOf(LocalDateTime.now().format(formatter));
+    }
+
+    @PreUpdate
+    public void onUpdate() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        this.updatedAt = String.valueOf(LocalDateTime.now().format(formatter));
     }
 }

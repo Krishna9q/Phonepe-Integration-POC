@@ -32,11 +32,7 @@
           <div class="detail-label">Transaction Date</div>
           <div class="detail-value">
             <span
-              th:text="${#temporals.format(payment.createdAt, 'dd MMM yyyy hh:mm a')}"
-            ></span>
-            <span
-              class="timestamp"
-              th:text="'(' + ${#temporals.format(payment.createdAt, 'EEE, dd MMM yyyy HH:mm:ss ')} + ')'"
+              th:text="${payment.createdAt}"
             ></span>
           </div>
         </div>
@@ -72,12 +68,9 @@
           <div class="detail-label">Refund Date</div>
           <div class="detail-value">
             <span
-              th:text="${#temporals.format(refund.initiatedAt, 'dd MMM yyyy hh:mm a')}"
+              th:text="${refund.initiatedAt}"
             ></span>
-            <span
-              class="timestamp"
-              th:text="|(${#temporals.format(refund.initiatedAt, 'EEE, dd MMM yyyy HH:mm:ss')})|"
-            ></span>
+           
           </div>
         </div>
 

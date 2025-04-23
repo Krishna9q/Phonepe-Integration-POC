@@ -48,9 +48,8 @@
       <div class="detail-row">
         <div class="detail-label">Transaction Date</div>
         <div class="detail-value">
-          <span th:text="${#temporals.format(payment.createdAt, 'dd MMM yyyy hh:mm a')}"></span>
-          <span class="timestamp" th:text="'(' + ${#temporals.format(payment.createdAt, 'EEE, dd MMM yyyy HH:mm:ss ')} + ')'"></span>
-        </div>
+          <span th:text="${payment.createdAt}"></span>
+  
       </div>
 
       <!-- Refund Details Section (shown only when payment is refunded) -->
@@ -78,10 +77,7 @@
         <div class="detail-row">
           <div class="detail-label">Refund Date</div>
           <div class="detail-value">
-            <span th:if="${payment.refundedAt}" th:text="${#temporals.format(payment.refundedAt, 'dd MMM yyyy hh:mm a')}"></span>
-            <span th:unless="${payment.refundedAt}">N/A</span>
-            <span class="timestamp" th:if="${payment.refundedAt}" 
-                  th:text="'(' + ${#temporals.format(payment.refundedAt, 'EEE, dd MMM yyyy HH:mm:ss ')} + ')'"></span>
+            <span th:text="${payment.refundedAt}"></span>
           </div>
         </div>
         

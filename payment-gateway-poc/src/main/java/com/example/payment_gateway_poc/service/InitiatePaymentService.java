@@ -264,7 +264,7 @@ public class InitiatePaymentService {
                 refundRepo.save(refund);
                 
                 logger.info("Thread is going to sleep for 5 seconds to wait for refund status update.");
-                Thread.sleep(5000);
+                Thread.sleep(100);
                 String checkStatusResponse = refundStatusCheck(refund.getMerchantRefundId());
 
                 

@@ -20,7 +20,7 @@ public class PaymentService {
     private RefundRepo refundRepo;
 
     public List<Payment> getAllPayments() {
-        return paymentRepo.findAll();
+        return paymentRepo.findAllByOrderByCreatedAtDesc();
 
     }
 

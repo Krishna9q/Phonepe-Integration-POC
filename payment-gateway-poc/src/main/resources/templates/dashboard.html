@@ -1,85 +1,112 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
+  <head>
     <meta charset="UTF-8" />
-    
+
     <title>Admin Dashboard - Payment Transactions</title>
     <link rel="stylesheet" th:href="@{/css/dashboard.css}" />
-</head>
-<body>
+  </head>
+  <body>
     <!-- Show flash error if exists -->
     <div class="alert-container">
-        <div th:if="${error}" class="alert alert-danger">
-            <span th:text="${error}"></span>
-            <button class="close-btn" onclick="this.parentElement.style.display='none'">&times;</button>
-        </div>
+      <div th:if="${error}" class="alert alert-danger">
+        <span th:text="${error}"></span>
+        <button
+          class="close-btn"
+          onclick="this.parentElement.style.display='none'"
+        >
+          &times;
+        </button>
+      </div>
     </div>
     <h1>Admin Dashboard - Payment Transactions</h1>
 
     <div class="scroll-table">
-        <table>
-            <thead>
-                <tr>
-                    <th>Sr.</th>
-                    <th>Payment ID</th>
-                    <th>Transaction ID</th>
-                    <th>Phone Number</th>
-                    <th>Order ID</th>
-                    <th>Merchant Order ID</th>
-                    <th>Amount (₹)</th>
-                    <th>Currency</th>
-                    <th>Status</th>
-                    <th>Payment Method</th>
-                    <th>PhonePe TXN ID</th>
-                    <th>Redirect URL</th>
-                    <th>Created At</th>
-                    <th>Updated At</th>
-                    <th>Error Code</th>
-                    <th>Error Message</th>
-                    <th>Is Refunded</th>
-                    <th>Refund</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- If payments list has data -->
-                <tr th:each="payment, iterStat : ${payments}" th:if="${payments.size() > 0}">
-                    <td th:text="${iterStat.index + 1}"></td>
-                    <td th:text="${payment.paymentId}"></td>
-                    <td th:text="${payment.transactionId}"></td>
-                    <td th:text="${payment.phoneNumber}"></td>
-                    <td th:text="${payment.orderId}"></td>
-                    <td th:text="${payment.merchentOrderId}"></td>
-                    <td th:text="${#numbers.formatDecimal(payment.amountInPaise / 100.0, 1, 2)}"></td>
-                    <td th:text="${payment.currency}"></td>
-                    <td th:classappend="${payment.status == 'SUCCESS'} ? 'status-success' : ((payment.status == 'FAILED') ? 'status-failed' : 'status-pending')"
-                        th:text="${payment.status}"></td>
-                    <td th:text="${payment.paymentMethod != null ? payment.paymentMethod : 'Transaction is pending/failed'}"></td>
-                    <td th:text="${payment.phonepeTransactionId != null ? payment.phonepeTransactionId : 'Transaction is pending/failed'}"></td>
-                    <td style="max-width: 250px; overflow-x: auto; white-space: nowrap"
-                        th:text="${payment.redirectUrl}"></td>
-                    <td th:text="${payment.createdAt}"></td>
-                    <td th:text="${payment.updatedAt}"></td>
-                    <td th:text="${payment.status != 'SUCCESS' ? (payment.errorCode != null ? payment.errorCode : 'N/A') : 'No error'}"></td>
-                    <td th:text="${payment.status != 'SUCCESS' ? (payment.errorMessage != null ? payment.errorMessage : 'N/A') : 'No error'}"></td>
-                    <td th:text="${payment.isRefunded}"></td>
-                    <td class="refund-container">
-                        <!-- Show Refund button ONLY for SUCCESS payments -->
-                        <div>
-                            <a th:href="@{/refund(paymentId=${payment.paymentId})}" class="refund-btn">
-                                Refund
-                            </a>
-                        </div>
-                    </td>
-                </tr>
+      <table>
+        <thead>
+          <tr>
+            <th>Sr.</th>
+            <th>Payment ID</th>
+            <th>Transaction ID</th>
+            <th>Phone Number</th>
+            <th>Order ID</th>
+            <th>Merchant Order ID</th>
+            <th>Amount (₹)</th>
+            <th>Currency</th>
+            <th>Status</th>
+            <th>Payment Method</th>
+            <th>PhonePe TXN ID</th>
+            <th>Redirect URL</th>
+            <th>Created At</th>
+            <th>Updated At</th>
+            <th>Error Code</th>
+            <th>Error Message</th>
+            <th>Is Refunded</th>
+            <th>Refund</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- If payments list has data -->
+          <tr
+            th:each="payment, iterStat : ${payments}"
+            th:if="${payments.size() > 0}"
+          >
+            <td th:text="${iterStat.index + 1}"></td>
+            <td th:text="${payment.paymentId}"></td>
+            <td th:text="${payment.transactionId}"></td>
+            <td th:text="${payment.phoneNumber}"></td>
+            <td th:text="${payment.orderId}"></td>
+            <td th:text="${payment.merchentOrderId}"></td>
+            <td
+              th:text="${#numbers.formatDecimal(payment.amountInPaise / 100.0, 1, 2)}"
+            ></td>
+            <td th:text="${payment.currency}"></td>
+            <td
+              th:classappend="${payment.status == 'SUCCESS'} ? 'status-success' : ((payment.status == 'FAILED') ? 'status-failed' : 'status-pending')"
+              th:text="${payment.status}"
+            ></td>
+            <td
+              th:text="${payment.paymentMethod != null ? payment.paymentMethod : 'Transaction is pending/failed'}"
+            ></td>
+            <td
+              th:text="${payment.phonepeTransactionId != null ? payment.phonepeTransactionId : 'Transaction is pending/failed'}"
+            ></td>
+            <td
+              style="max-width: 250px; overflow-x: auto; white-space: nowrap"
+              th:text="${payment.redirectUrl}"
+            ></td>
+            <td th:text="${payment.createdAt}"></td>
+            <td th:text="${payment.updatedAt}"></td>
+            <td
+              th:text="${payment.status != 'SUCCESS' ? (payment.errorCode != null ? payment.errorCode : 'N/A') : 'No error'}"
+            ></td>
+            <td
+              th:text="${payment.status != 'SUCCESS' ? (payment.errorMessage != null ? payment.errorMessage : 'N/A') : 'No error'}"
+            ></td>
+            <td th:text="${payment.isRefunded}"></td>
+            <td class="refund-container">
+              <!-- Show Refund button ONLY for SUCCESS payments -->
+              <div>
+                <a
+                  th:href="@{/refund(paymentId=${payment.paymentId})}"
+                  class="refund-btn"
+                >
+                  Refund
+                </a>
+              </div>
+            </td>
+          </tr>
 
-                <!-- If no payments exist -->
-                <tr th:if="${payments.size() == 0}">
-                    <td colspan="17" style="text-align: center; color: #999">
-                        No transactions found
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+          <!-- If no payments exist -->
+          <tr th:if="${payments.size() == 0}">
+            <td colspan="17" style="text-align: center; color: #999">
+              No transactions found
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-</body>
+
+  
+  </body>
 </html>
