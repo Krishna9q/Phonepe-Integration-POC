@@ -47,7 +47,8 @@ It demonstrates the integration process, simulates payments, and provides an adm
 
 ### User Flow Screens:
 1. **Payment Initiation Screen**  
-   ![Payment Initiation](screenshots/payment_initiation.png)
+   ![Payment Initiation](![image](https://github.com/user-attachments/assets/82f38d5e-1e91-4081-b548-7d2ae0b0c5d8)
+)
 
 2. **PhonePe Interface Simulation**  
    ![PhonePe Interface](screenshots/phonepe_interface.png)
