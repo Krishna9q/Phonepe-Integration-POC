@@ -1,71 +1,114 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
+  <head>
     <title>Payment Result</title>
-    <meta charset="UTF-8">
-</head>
-<body>
-    <h1>Payment Result</h1>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" th:href="@{/css/payment_result.css}" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">Payment Details</div>
+      <div class="section" id="paymentSection">
+        <div class="section-title">Payment Information</div>
+        <div class="row">
+          <span class="label">Payment ID:</span
+          ><span class="value" id="paymentId"></span>
+        </div>
+        <div class="row">
+          <span class="label">Order ID:</span
+          ><span class="value" id="orderId"></span>
+        </div>
+        <div class="row">
+          <span class="label">Merchant Order ID:</span
+          ><span class="value" id="merchantOrderId"></span>
+        </div>
+        <div class="row">
+          <span class="label">Amount:</span
+          ><span class="value" id="amount"></span>
+        </div>
+        <div class="row">
+          <span class="label">Currency:</span
+          ><span class="value" id="currency"></span>
+        </div>
+        <div class="row">
+          <span class="label">Status:</span
+          ><span class="value" id="status"></span>
+        </div>
+        <div class="row">
+          <span class="label">Phone Number:</span
+          ><span class="value" id="phoneNumber"></span>
+        </div>
+        <div class="row">
+          <span class="label">IsRefunded:</span
+          ><span class="value" id="IsRefunded"></span>
+        </div>
+        <div class="row">
+          <span class="label">Created At:</span
+          ><span class="value" id="createdAt"></span>
+        </div>
+        <div class="row">
+          <span class="label">Updated At:</span
+          ><span class="value" id="updatedAt"></span>
+        </div>
+      </div>
 
-    <div id="statusContainer">
-        Checking payment status...
+      <a class="footer-link" href="/">Go Back to Home</a>
     </div>
 
-    <a href="/">Go Back to Home</a>
-
     <script>
-        // Helper to get query parameter from URL
-        function getQueryParam(param) {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(param);
+      function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+      }
+
+      function formatDate(dateStr) {
+        const date = new Date(dateStr);
+        return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+      }
+
+      function updatePaymentInfo(data) {
+        document.getElementById("paymentId").textContent =
+          data.paymentId || "N/A";
+        document.getElementById("orderId").textContent = data.orderId || "N/A";
+        document.getElementById("merchantOrderId").textContent =
+          data.merchentOrderId || "N/A";
+        document.getElementById("amount").textContent = `₹${(
+          data.amountInPaise / 100
+        ).toFixed(2)}`;
+        document.getElementById("currency").textContent =
+          data.currency || "N/A";
+        document.getElementById("status").textContent = data.status || "N/A";
+        document.getElementById("phoneNumber").textContent =
+          data.phoneNumber || "N/A";
+        document.getElementById("IsRefunded").textContent = data.isRefunded;
+        document.getElementById("createdAt").textContent = formatDate(
+          data.createdAt
+        );
+        document.getElementById("updatedAt").textContent = formatDate(
+          data.updatedAt
+        );
+      }
+
+      function fetchPaymentDetails() {
+        const merchentOrderId = getQueryParam("merchentOrderId");
+        if (!merchentOrderId) {
+          alert("Missing merchant order ID");
+          return;
         }
 
-        // Format result UI
-        function formatPaymentDetails(data) {
-            let html = `
-                <p><strong>Order ID:</strong> ${data.orderId}</p>
-                <p><strong>Status:</strong> ${data.state}</p>
-                <p><strong>Amount:</strong> ₹${data.amount /100}</p>
-                <p><strong>Error Code:</strong> ${data.errorCode || "N/A"}</p>
-                <p><strong>Detailed Error:</strong> ${data.detailedErrorCode || "N/A"}</p>
-            `;
+        fetch(`/payment/details?merchentOrderId=${merchentOrderId}`)
+          .then((res) => res.json())
+          .then((data) => {
+            console.log("Payment Data:", data);
+            updatePaymentInfo(data);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("Failed to load payment details");
+          });
+      }
 
-            if (data.paymentDetails && data.paymentDetails.length > 0) {
-                const pd = data.paymentDetails[0];
-                html += `
-                    <h3>Payment Details:</h3>
-                    <p><strong>Payment Mode:</strong> ${pd.paymentMode}</p>
-                    <p><strong>Transaction ID:</strong> ${pd.transactionId}</p>
-                    <p><strong>Payment Status:</strong> ${pd.state}</p>
-                `;
-            }
-
-            return html;
-        }
-
-        function checkPaymentStatus() {
-            const merchentOrderId = getQueryParam("merchentOrderId");
-            if (!merchentOrderId) {
-                document.getElementById("statusContainer").innerText = "Missing transaction ID in URL.";
-                return;
-            }
-
-            fetch(`/check-payment-status?merchentOrderId=${merchentOrderId}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.state === 'COMPLETED' || data.state === 'FAILED') {
-                        document.getElementById("statusContainer").innerHTML = formatPaymentDetails(data);
-                    } else {
-                        document.getElementById("statusContainer").innerText = "Payment is still pending. Please check back later.";
-                    }
-                })
-                .catch(error => {
-                    document.getElementById("statusContainer").innerText = "Error checking payment status.";
-                    console.error(error);
-                });
-        }
-
-        window.onload = checkPaymentStatus;
+      window.onload = fetchPaymentDetails;
     </script>
-</body>
+  </body>
 </html>

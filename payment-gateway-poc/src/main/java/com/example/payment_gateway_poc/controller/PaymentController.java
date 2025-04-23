@@ -12,6 +12,7 @@ import com.example.payment_gateway_poc.repo.RefundRepo;
 import com.example.payment_gateway_poc.request.PaymentRequest;
 import com.example.payment_gateway_poc.response.PaymentStatusCheckResponse;
 import com.example.payment_gateway_poc.service.InitiatePaymentService;
+import com.example.payment_gateway_poc.service.PaymentService;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -25,6 +26,9 @@ public class PaymentController {
 
     @Autowired
     private InitiatePaymentService initiatePaymentService;
+
+    @Autowired
+    private PaymentService paymentService;
 
     // private RefundServ refundRepo;
 
@@ -65,6 +69,12 @@ public class PaymentController {
             logger.error("Failed to retrieve payment status: {}", e.getMessage(), e);
             return new ResponseEntity<>(new PaymentStatusCheckResponse(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @GetMapping("/payment/details")
+    public ResponseEntity<Payment> getPaymentDetails(@RequestParam String merchentOrderId) {
+        Payment payment = this.paymentService.getPaymentDetails(merchentOrderId);
+        return new ResponseEntity<>(payment, HttpStatus.OK);
     }
 
     @PostMapping("/process-refund")

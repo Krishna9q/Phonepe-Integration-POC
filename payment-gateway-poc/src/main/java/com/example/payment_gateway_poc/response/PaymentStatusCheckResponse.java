@@ -8,4 +8,5 @@ import lombok.ToString;
 public class PaymentStatusCheckResponse {
     private String status;
     private String reason;
+    
 }

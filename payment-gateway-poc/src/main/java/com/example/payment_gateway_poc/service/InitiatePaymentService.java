@@ -12,14 +12,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-
 import javax.print.DocFlavor.READER;
-
 import com.example.payment_gateway_poc.model.Payment;
 import com.example.payment_gateway_poc.model.Refund;
 import com.example.payment_gateway_poc.model.Payment.PaymentStatus;
@@ -30,7 +27,6 @@ import com.example.payment_gateway_poc.response.PaymentStatusCheckResponse;
 import com.example.payment_gateway_poc.response.PhonePeStatusResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -120,7 +116,7 @@ public class InitiatePaymentService {
 
         Map<String, String> merchantUrls = new HashMap<>();
         merchantUrls.put("redirectUrl",
-                "https://4b39-2409-40c4-270-9477-1f9f-a521-ae3d-933.ngrok-free.app/payment/result?merchentOrderId="
+                "https://475f-2409-40c4-2e-a684-b833-9954-b4d7-c70d.ngrok-free.app/payment/result?merchentOrderId="
                         + payment.getMerchentOrderId());
         merchantUrls.put("callbackUrl",
                 "https://4b39-2409-40c4-270-9477-1f9f-a521-ae3d-933.ngrok-free.app/phonepe/callback");
@@ -231,10 +227,11 @@ public class InitiatePaymentService {
     public String initiateRefund(String originalMerchantOrderId) {
         Payment payment = paymentRepo.findByMerchentOrderId(originalMerchantOrderId);
 
-        if (!payment.getIsRefunded()) {
-            if (payment == null) {
+        if (payment == null) {
+             
                 throw new RuntimeException("Payment Not Found with Merchant Order ID: " + originalMerchantOrderId);
             }
+        if(payment.getIsRefunded()){throw new RuntimeException("Refund Intitated Already");}    
 
             String API_URL = "https://api-preprod.phonepe.com/apis/pg-sandbox/payments/v2/refund";
 
@@ -265,8 +262,12 @@ public class InitiatePaymentService {
                 String refundId = String.valueOf(responseMap.get("refundId"));
                 refund.setPhonePeRefundId(refundId);
                 refundRepo.save(refund);
+                
+                logger.info("Thread is going to sleep for 5 seconds to wait for refund status update.");
+                Thread.sleep(5000);
                 String checkStatusResponse = refundStatusCheck(refund.getMerchantRefundId());
 
+                
                 refund.setStatus(checkStatusResponse);
                 payment.setIsRefunded(true);
                 refundRepo.save(refund);
@@ -279,9 +280,7 @@ public class InitiatePaymentService {
                 e.printStackTrace();
                 return "Error While Initiating Refund: " + e.getMessage();
             }
-        } else {
-            throw new RuntimeException("Refund Intitated Already");
-        }
+        
 
     }
 

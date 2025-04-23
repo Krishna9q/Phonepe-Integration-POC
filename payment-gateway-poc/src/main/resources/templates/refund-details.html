@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
   <head>
     <meta charset="UTF-8" />
-    <title>Refund Details - <span th:text="${payment.paymentId}"></span></title>
+    <title>Refund Details</title>
     <link rel="stylesheet" th:href="@{/css/refund-details.css}" />
   </head>
   <body>
@@ -94,10 +94,7 @@
           ></div>
         </div>
 
-        <a
-          th:href="@{/dashboard}"
-          class="back-button"
-        >
+        <a th:href="@{/dashboard}" class="back-button">
           Back to Payment Details
         </a>
       </div>
