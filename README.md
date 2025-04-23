@@ -52,17 +52,17 @@ It demonstrates the integration process, simulates payments, and provides an adm
 
 2. **PhonePe Interface Simulation**  
    ![PhonePe Interface](https://github.com/user-attachments/assets/4d362a52-837a-44c2-a385-2ba7552d104e)
-)
+
 
 3. **Payment Result Page**  
    ![Payment Result](https://github.com/user-attachments/assets/c2b19fa6-ebe3-41ca-a4df-4a8ac6c75325)
-)
+
 
 ### Admin Dashboard Screens:
 1. **Payment Stats Overview**  
    ![Payment Stats](https://github.com/user-attachments/assets/8f19a195-a737-4c57-99b7-c13486a4be3a)
-)
+
 
 2. **Refund Management Panel**  
    ![Refund Interface](https://github.com/user-attachments/assets/a7f657a5-f675-4b8b-89a0-c1283d110977)
-)
+
