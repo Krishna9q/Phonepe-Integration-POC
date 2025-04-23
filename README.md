@@ -60,7 +60,9 @@ It demonstrates the integration process, simulates payments, and provides an adm
 
 ### Admin Dashboard Screens:
 1. **Payment Stats Overview**  
-   ![Payment Stats](screenshots/payment_stats.png)
+   ![Payment Stats](https://github.com/user-attachments/assets/8f19a195-a737-4c57-99b7-c13486a4be3a)
+)
 
 2. **Refund Management Panel**  
-   ![Refund Management](screenshots/refund_management.png)
+   ![Refund Interface](https://github.com/user-attachments/assets/a7f657a5-f675-4b8b-89a0-c1283d110977)
+)
