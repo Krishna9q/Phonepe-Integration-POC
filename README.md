@@ -34,6 +34,15 @@ It demonstrates the integration process, simulates payments, and provides an adm
 
 ---
 
+## 🔧 Tech Stack
+
+- **Backend**: Java Spring Boot
+- **Database**: PostgreSQL
+- **Containerization**: Docker
+- **Templates**: Thymeleaf
+
+---
+
 ## 📸 Screenshots
 
 ### User Flow Screens:
