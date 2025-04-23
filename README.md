@@ -25,8 +25,8 @@ It demonstrates the integration process, simulates payments, and provides an adm
 
 ---
 
-### Admin Dashboard Features:
-/dashboard
+### Admin Dashboard Features(/dashboard):
+
 1. **Payment Stats**  
    View detailed stats for all payment attempts.
 
