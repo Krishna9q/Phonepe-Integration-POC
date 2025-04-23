@@ -1,6 +1,7 @@
 # PhonePe Payment Gateway Integration POC
 
-This project is a Proof of Concept (POC) for integrating the PhonePe Payment Gateway. It demonstrates the integration process, simulates payments, and provides an admin dashboard to manage payment statuses and refunds.
+This project is a Proof of Concept (POC) for integrating the PhonePe Payment Gateway. 
+It demonstrates the integration process, simulates payments, and provides an admin dashboard to manage payment statuses and refunds.
 
 ---
 
