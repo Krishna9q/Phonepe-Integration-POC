@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import javax.print.DocFlavor.READER;
 import com.example.payment_gateway_poc.model.Payment;
 import com.example.payment_gateway_poc.model.Refund;
 import com.example.payment_gateway_poc.model.Payment.PaymentStatus;
@@ -25,7 +24,6 @@ import com.example.payment_gateway_poc.repo.RefundRepo;
 import com.example.payment_gateway_poc.request.PaymentRequest;
 import com.example.payment_gateway_poc.response.PaymentStatusCheckResponse;
 import com.example.payment_gateway_poc.response.PhonePeStatusResponse;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,11 +42,6 @@ public class InitiatePaymentService {
     @Value("${spring.payments.phonepe.base-url}")
     private String BASE_URL;
 
-    @Value("${spring.payments.phonepe.saltKey}")
-    private String saltKey;
-
-    @Value("${spring.payments.phonepe.saltIndex}")
-    private String saltIndex;
 
     private String token;
 
