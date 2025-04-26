@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
@@ -17,7 +19,6 @@ import jakarta.persistence.PreUpdate;
 @Setter
 @Entity
 public class Payment {
-    
 
     public enum PaymentStatus {
         INITIATED,
@@ -79,12 +80,14 @@ public class Payment {
     @PrePersist
     public void onCreate() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        this.createdAt = String.valueOf(LocalDateTime.now().format(formatter));
+        ZonedDateTime indiaTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
+        this.createdAt = indiaTime.format(formatter);
     }
 
     @PreUpdate
     public void onUpdate() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        this.updatedAt = String.valueOf(LocalDateTime.now().format(formatter));
+        ZonedDateTime indiaTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
+        this.updatedAt = indiaTime.format(formatter);
     }
 }

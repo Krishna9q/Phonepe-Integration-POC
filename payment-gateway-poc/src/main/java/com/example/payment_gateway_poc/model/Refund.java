@@ -1,6 +1,8 @@
 package com.example.payment_gateway_poc.model;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 import jakarta.persistence.Entity;
@@ -56,15 +58,17 @@ public class Refund {
         
     }
 
-       @PrePersist
+    @PrePersist
     public void onCreate() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        this.initiatedAt = String.valueOf(LocalDateTime.now().format(formatter));
+        ZonedDateTime indiaTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
+        this.initiatedAt = indiaTime.format(formatter);
     }
 
     @PreUpdate
     public void onUpdate() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        this.updatedAt = String.valueOf(LocalDateTime.now().format(formatter));
+        ZonedDateTime indiaTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
+        this.updatedAt = indiaTime.format(formatter);
     }
 }
