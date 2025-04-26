@@ -109,10 +109,10 @@ public class InitiatePaymentService {
 
         Map<String, String> merchantUrls = new HashMap<>();
         merchantUrls.put("redirectUrl",
-                "https://475f-2409-40c4-2e-a684-b833-9954-b4d7-c70d.ngrok-free.app/payment/result?merchentOrderId="
+                "https://phonepe-integration-poc.onrender.com/payment/result?merchentOrderId="
                         + payment.getMerchentOrderId());
         merchantUrls.put("callbackUrl",
-                "https://4b39-2409-40c4-270-9477-1f9f-a521-ae3d-933.ngrok-free.app/phonepe/callback");
+                "https://phonepe-integration-poc.onrender.com/phonepe/callback");
         paymentFlow.put("merchantUrls", merchantUrls);
 
         requestBody.put("paymentFlow", paymentFlow);
